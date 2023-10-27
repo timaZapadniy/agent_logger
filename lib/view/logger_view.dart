@@ -171,23 +171,26 @@ class _LogItemState extends State<LogItem> {
           mainAxisAlignment: MainAxisAlignment.end,
           crossAxisAlignment: CrossAxisAlignment.end,
           children: [
-            Container(
-              decoration:
-                  BoxDecoration(borderRadius: BorderRadius.circular(50)),
-              height: 25,
-              width: 25,
-              child: GestureDetector(
-                  onTap: () {
-                    Share.share(
-                        '${DateFormat('dd:MM:yyyy – kk:mm:ss').format(widget.log.time!)}\n${widget.log.message}',
-                        subject: '');
-                  },
-                  child: Icon(
-                    CupertinoIcons.arrowshape_turn_up_right_fill,
-                    size: 18,
-                    weight: 5,
-                    color: Colors.grey.shade300,
-                  )),
+            Padding(
+              padding: const EdgeInsets.only(bottom: 16.0),
+              child: Container(
+                decoration:
+                    BoxDecoration(borderRadius: BorderRadius.circular(50)),
+                height: 25,
+                width: 25,
+                child: GestureDetector(
+                    onTap: () {
+                      Share.share(
+                          '${DateFormat('dd:MM:yyyy – kk:mm:ss').format(widget.log.time!)}\n${widget.log.message}',
+                          subject: '');
+                    },
+                    child: Icon(
+                      CupertinoIcons.arrowshape_turn_up_right_fill,
+                      size: 18,
+                      weight: 5,
+                      color: Colors.grey.shade300,
+                    )),
+              ),
             ),
             Expanded(
               child: Column(
