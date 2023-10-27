@@ -1,3 +1,4 @@
+import 'package:agent_logger/models/log.dart';
 import 'package:logger/logger.dart';
 
 import 'buffer_output.dart';
@@ -18,22 +19,47 @@ class LoggerWriter extends Logger {
   }
 
   @override
-  void d(message, {DateTime? time, Object? error, StackTrace? stackTrace}) {}
+  void d(message, {DateTime? time, Object? error, StackTrace? stackTrace}) {
+    BufferOutput().lines.add(Log(
+        message: message,
+        time: time ?? DateTime.now(),
+        error: error,
+        stackTrace: stackTrace));
+    super.d(message,
+        time: time ?? DateTime.now(), error: error, stackTrace: stackTrace);
+  }
 
   @override
   void e(message, {DateTime? time, Object? error, StackTrace? stackTrace}) {
-    // TODO: implement e
+    BufferOutput().lines.add(Log(
+        message: message,
+        time: time ?? DateTime.now(),
+        error: error,
+        stackTrace: stackTrace));
+    super.e(message,
+        time: time ?? DateTime.now(), error: error, stackTrace: stackTrace);
   }
 
   @override
   void f(message, {DateTime? time, Object? error, StackTrace? stackTrace}) {
-    // TODO: implement f
+    BufferOutput().lines.add(Log(
+        message: message,
+        time: time ?? DateTime.now(),
+        error: error,
+        stackTrace: stackTrace));
+    super.f(message,
+        time: time ?? DateTime.now(), error: error, stackTrace: stackTrace);
   }
 
   @override
   void i(message, {DateTime? time, Object? error, StackTrace? stackTrace}) {
-    BufferOutput().lines.add(message);
-    super.i(message, time: time, error: error, stackTrace: stackTrace);
+    BufferOutput().lines.add(Log(
+        message: message,
+        time: time ?? DateTime.now(),
+        error: error,
+        stackTrace: stackTrace));
+    super.i(message,
+        time: time ?? DateTime.now(), error: error, stackTrace: stackTrace);
   }
 
   @override
@@ -45,26 +71,51 @@ class LoggerWriter extends Logger {
   @override
   void log(Level level, message,
       {DateTime? time, Object? error, StackTrace? stackTrace}) {
-    // TODO: implement log
+    super.log(level, message,
+        time: time ?? DateTime.now(), error: error, stackTrace: stackTrace);
   }
 
   @override
   void t(message, {DateTime? time, Object? error, StackTrace? stackTrace}) {
-    // TODO: implement t
+    BufferOutput().lines.add(Log(
+        message: message,
+        time: time ?? DateTime.now(),
+        error: error,
+        stackTrace: stackTrace));
+    super.t(message,
+        time: time ?? DateTime.now(), error: error, stackTrace: stackTrace);
   }
 
   @override
   void v(message, {DateTime? time, Object? error, StackTrace? stackTrace}) {
-    // TODO: implement v
+    BufferOutput().lines.add(Log(
+        message: message,
+        time: time ?? DateTime.now(),
+        error: error,
+        stackTrace: stackTrace));
+    super.v(message,
+        time: time ?? DateTime.now(), error: error, stackTrace: stackTrace);
   }
 
   @override
   void w(message, {DateTime? time, Object? error, StackTrace? stackTrace}) {
-    // TODO: implement w
+    BufferOutput().lines.add(Log(
+        message: message,
+        time: time ?? DateTime.now(),
+        error: error,
+        stackTrace: stackTrace));
+    super.w(message,
+        time: time ?? DateTime.now(), error: error, stackTrace: stackTrace);
   }
 
   @override
   void wtf(message, {DateTime? time, Object? error, StackTrace? stackTrace}) {
-    // TODO: implement wtf
+    BufferOutput().lines.add(Log(
+        message: message,
+        time: time ?? DateTime.now(),
+        error: error,
+        stackTrace: stackTrace));
+    super.wtf(message,
+        time: time ?? DateTime.now(), error: error, stackTrace: stackTrace);
   }
 }

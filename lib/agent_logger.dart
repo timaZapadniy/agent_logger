@@ -2,45 +2,40 @@
 
 import 'package:agent_logger/shake.dart';
 import 'package:flutter/material.dart';
-import 'package:logger/logger.dart';
 
-import 'buffer_output.dart';
+import 'logger.dart';
+import 'view/logger_view.dart';
 
 class AgentLogger extends StatefulWidget {
   /// The first widget in metrial app.
   final Widget child;
+  final bool enable;
+  AgentLogger({Key? key, required this.child, this.enable = true})
+      : super(key: key);
 
-  AgentLogger({Key? key, required this.child}) : super(key: key);
-
-  final logger = Logger(output: BufferOutput());
+  final logger = LoggerWriter();
   Widget build(
     BuildContext context,
     AgentLoggerState state, {
     bool openLog = false,
   }) {
-    return Stack(
-      children: [
-        child,
-        if (openLog)
-          Scaffold(
-            appBar: AppBar(
-              leading: GestureDetector(
-                  onTap: () => state.closeLogger(),
-                  child: const Icon(Icons.close)),
-            ),
-            body: Center(
-              child: Text('${BufferOutput().lines}'),
-            ),
+    return enable
+        ? Stack(
+            children: [
+              child,
+              if (openLog)
+                LoggerView(
+                  onTap: () {
+                    state.closeLogger();
+                  },
+                )
+            ],
           )
-      ],
-    );
+        : child;
   }
 
   @override
   AgentLoggerState createState() => AgentLoggerState();
-  void i(String message) {
-    logger.i(message);
-  }
 }
 
 class AgentLoggerState extends State<AgentLogger> {
