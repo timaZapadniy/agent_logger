@@ -167,59 +167,62 @@ class _LogItemState extends State<LogItem> {
       child: Container(
         padding:
             const EdgeInsets.only(left: 14, right: 14, top: 10, bottom: 10),
-        child: Column(
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.end,
+          crossAxisAlignment: CrossAxisAlignment.end,
           children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                Container(
-                  decoration:
-                      BoxDecoration(borderRadius: BorderRadius.circular(50)),
-                  height: 25,
-                  width: 25,
-                  child: GestureDetector(
-                      onTap: () {
-                        Share.share(
-                            '${DateFormat('dd:MM:yyyy – kk:mm:ss').format(widget.log.time!)}\n${widget.log.message}',
-                            subject: '');
-                      },
-                      child: Icon(
-                        CupertinoIcons.arrowshape_turn_up_right_fill,
-                        size: 18,
-                        weight: 5,
-                        color: Colors.grey.shade300,
-                      )),
-                ),
-                Align(
-                  alignment: Alignment.topRight,
-                  child: Container(
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(20),
-                      color: _isSelected
-                          ? Color(0xffbb86fc).withOpacity(0.5)
-                          : (Colors.grey.shade200),
-                    ),
-                    padding: const EdgeInsets.all(12),
-                    child: Text(
-                      widget.log.message,
-                      style: const TextStyle(fontSize: 12),
-                    ),
-                  ),
-                ),
-              ],
+            Container(
+              decoration:
+                  BoxDecoration(borderRadius: BorderRadius.circular(50)),
+              height: 25,
+              width: 25,
+              child: GestureDetector(
+                  onTap: () {
+                    Share.share(
+                        '${DateFormat('dd:MM:yyyy – kk:mm:ss').format(widget.log.time!)}\n${widget.log.message}',
+                        subject: '');
+                  },
+                  child: Icon(
+                    CupertinoIcons.arrowshape_turn_up_right_fill,
+                    size: 18,
+                    weight: 5,
+                    color: Colors.grey.shade300,
+                  )),
             ),
-            if (widget.log.time != null)
-              Align(
-                alignment: Alignment.bottomRight,
-                child: Container(
-                  padding: const EdgeInsets.only(top: 4, right: 4),
-                  child: Text(
-                    DateFormat('dd:MM:yyyy – kk:mm:ss')
-                        .format(widget.log.time!),
-                    style: const TextStyle(fontSize: 6),
+            Expanded(
+              child: Column(
+                children: [
+                  Align(
+                    alignment: Alignment.topRight,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(20),
+                        color: _isSelected
+                            ? Color(0xffbb86fc).withOpacity(0.5)
+                            : (Colors.grey.shade200),
+                      ),
+                      padding: const EdgeInsets.all(12),
+                      child: Text(
+                        widget.log.message,
+                        style: const TextStyle(fontSize: 12),
+                      ),
+                    ),
                   ),
-                ),
+                  if (widget.log.time != null)
+                    Align(
+                      alignment: Alignment.bottomRight,
+                      child: Container(
+                        padding: const EdgeInsets.only(top: 4, right: 4),
+                        child: Text(
+                          DateFormat('dd:MM:yyyy – kk:mm:ss')
+                              .format(widget.log.time!),
+                          style: const TextStyle(fontSize: 6),
+                        ),
+                      ),
+                    ),
+                ],
               ),
+            ),
           ],
         ),
       ),
