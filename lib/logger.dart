@@ -1,17 +1,30 @@
 import 'package:agent_logger/models/log.dart';
+import 'package:firebase_dart/firebase_dart.dart';
+import 'package:firedart/firestore/firestore.dart';
 import 'package:logger/logger.dart';
-
+import 'package:firebase_dart/firebase_dart.dart' as firebase;
 import 'buffer_output.dart';
 
 class LoggerWriter extends Logger {
-  static final LoggerWriter _instance = LoggerWriter._internal();
+  final FirebaseOptions? firebaseOptions;
+  static LoggerWriter _instance(firebaseOptions) {
+    return LoggerWriter._internal(firebaseOptions);
+  }
 
-  factory LoggerWriter() {
-    return _instance;
+  factory LoggerWriter({firebaseOptions = null}) {
+    return _instance(firebaseOptions);
   }
-  LoggerWriter._internal() {
-    // initialization logic
+  LoggerWriter._internal(this.firebaseOptions) {
+    if (firebaseOptions != null) initFirebase(firebaseOptions!);
   }
+  Future<void> initFirebase(FirebaseOptions options) async {
+    firebase.FirebaseDart.setup();
+
+    var app = await firebase.Firebase.initializeApp(options: options);
+
+    Firestore.initialize(options.projectId);
+  }
+
   @override
   Future<void> close() {
     // TODO: implement close
@@ -58,6 +71,16 @@ class LoggerWriter extends Logger {
         time: time ?? DateTime.now(),
         error: error,
         stackTrace: stackTrace));
+    if (firebaseOptions != null) {
+      var _i =
+          Firestore.instance.collection('deviceLogs').document('test').set({
+        'message': message,
+        'time': time ?? DateTime.now(),
+        'error': error,
+        'stackTrace': stackTrace
+      });
+    }
+
     super.i(message,
         time: time ?? DateTime.now(), error: error, stackTrace: stackTrace);
   }

@@ -3,7 +3,6 @@
 import 'package:agent_logger/shake.dart';
 import 'package:flutter/material.dart';
 
-import 'logger.dart';
 import 'view/logger_view.dart';
 
 class AgentLogger extends StatefulWidget {
@@ -13,7 +12,6 @@ class AgentLogger extends StatefulWidget {
   AgentLogger({Key? key, required this.child, this.enable = true})
       : super(key: key);
 
-  final logger = LoggerWriter();
   Widget build(
     BuildContext context,
     AgentLoggerState state, {

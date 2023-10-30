@@ -1,7 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:agent_logger/agent_logger.dart';
 import 'package:agent_logger/logger.dart';
+import 'package:firebase_dart/firebase_dart.dart' as firebase;
 
+var options = const firebase.FirebaseOptions(
+    appId: '',
+    apiKey: '',
+    projectId: '',
+    messagingSenderId: '',
+    authDomain: '',
+    databaseURL: '',
+    storageBucket: '');
 var logger = LoggerWriter();
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
