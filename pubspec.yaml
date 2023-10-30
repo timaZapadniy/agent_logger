@@ -1,6 +1,6 @@
 name: agent_logger
 description: package to create and read application logs in the application itself.
-version: 0.0.4
+version: 0.0.5
 homepage: https://github.com/timaZapadniy/agent_logger
 
 environment:
