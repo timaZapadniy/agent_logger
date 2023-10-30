@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
@@ -46,12 +47,14 @@ class _LoggerViewState extends State<LoggerView> {
             ),
             GestureDetector(
                 onTap: () async {
-                  String filee = await _write(BufferOutput().lines.toList());
+                  String filee = await _write(selectedLogs.isNotEmpty
+                      ? selectedLogs
+                      : BufferOutput().lines.toList());
                   final result =
                       await Share.shareXFiles([XFile(filee)], text: 'Logs');
 
                   if (result.status == ShareResultStatus.success) {
-                    print('Thank you for sharing the picture!');
+                    print('Thank you for sharing!');
                   }
                 },
                 child: const Icon(
@@ -84,9 +87,7 @@ class _LoggerViewState extends State<LoggerView> {
                     .toList()
                     .where((element) => element.message.contains(value))
                     .toList();
-                setState(() {
-                  print(selectedLogs);
-                });
+                setState(() {});
               },
               decoration: InputDecoration(
                 hintText: "Search...",
@@ -204,8 +205,8 @@ class _LogItemState extends State<LogItem> {
                             ? Color(0xffbb86fc).withOpacity(0.5)
                             : (Colors.grey.shade200),
                       ),
-                      padding: const EdgeInsets.all(12),
-                      child: Text(
+                      padding: const EdgeInsets.all(16),
+                      child: SelectableText(
                         widget.log.message,
                         style: const TextStyle(fontSize: 12),
                       ),
