@@ -1,35 +1,45 @@
-import 'dart:io';
-
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 import 'package:intl/intl.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 
-import '../buffer_output.dart';
+import '../controller/logger_controller.dart';
 import '../models/log.dart';
-
-List<Log> selectedLogs = [];
+import '../repository/log_repository.dart';
 
 class LoggerView extends StatefulWidget {
   final void Function()? onTap;
-  LoggerView({super.key, required this.onTap});
+
+  const LoggerView({super.key, required this.onTap});
 
   @override
   State<LoggerView> createState() => _LoggerViewState();
 }
 
 class _LoggerViewState extends State<LoggerView> {
-  List<Log> _logList = BufferOutput().lines.reversed.toList();
-
+  late final LoggerController _controller;
   final Color _kColor = const Color(0xffbb86fc).withOpacity(0.5);
+  final ScrollController _scrollController = ScrollController();
 
-  final ScrollController _controller = ScrollController();
   @override
   void initState() {
-    selectedLogs = [];
     super.initState();
+    _controller = LoggerController(LogRepository());
+    _controller.addListener(_onControllerUpdate);
+  }
+
+  void _onControllerUpdate() {
+    if (mounted) {
+      setState(() {});
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.removeListener(_onControllerUpdate);
+    _controller.dispose();
+    _scrollController.dispose();
+    super.dispose();
   }
 
   @override
@@ -45,126 +55,118 @@ class _LoggerViewState extends State<LoggerView> {
                 style: TextStyle(fontSize: 30, fontWeight: FontWeight.bold),
               ),
             ),
-            GestureDetector(
-                onTap: () async {
-                  String filee = await _write(selectedLogs.isNotEmpty
-                      ? selectedLogs
-                      : BufferOutput().lines.toList());
-                  final result =
-                      await Share.shareXFiles([XFile(filee)], text: 'Logs');
-
-                  if (result.status == ShareResultStatus.success) {
-                    print('Thank you for sharing!');
-                  }
-                },
-                child: const Icon(
-                  CupertinoIcons.arrowshape_turn_up_right_fill,
-                  size: 25,
-                  weight: 5,
-                )),
-            const SizedBox(
-              width: 16,
+            IconButton(
+              icon: const Icon(
+                CupertinoIcons.arrowshape_turn_up_right_fill,
+                size: 25,
+              ),
+              onPressed: () async {
+                final result = await _controller.exportAndShare();
+                if (!mounted) return;
+                if (result.status == ShareResultStatus.success) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Logs shared successfully!')),
+                  );
+                }
+              },
             ),
-            GestureDetector(
-                onTap: widget.onTap,
-                child: const Icon(
-                  Icons.close,
-                  size: 32,
-                  weight: 10,
-                )),
+            IconButton(
+              icon: const Icon(Icons.close, size: 32),
+              onPressed: widget.onTap,
+            ),
           ],
         ),
       ),
       body: Column(
         children: [
-          Padding(
-            padding: const EdgeInsets.only(top: 16, left: 8, right: 8),
-            child: TextField(
-              onSubmitted: (value) {
-                _logList = BufferOutput()
-                    .lines
-                    .reversed
-                    .toList()
-                    .where((element) => element.message.contains(value))
-                    .toList();
-                setState(() {});
-              },
-              decoration: InputDecoration(
-                hintText: "Search...",
-                hintStyle: TextStyle(color: Colors.grey.shade600),
-                prefixIcon: Icon(
-                  Icons.search,
-                  color: Colors.grey.shade600,
-                  size: 20,
-                ),
-                filled: true,
-                fillColor: Colors.grey.shade100,
-                contentPadding: const EdgeInsets.all(8),
-                enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(20),
-                    borderSide: BorderSide(color: Colors.grey.shade100)),
-              ),
-            ),
+          _SearchField(
+            onSearch: (query) => _controller.search(query),
           ),
           Expanded(
             child: ListView.builder(
-              itemCount: _logList.length,
+              itemCount: _controller.filteredLogs.length,
               shrinkWrap: true,
               reverse: true,
-              controller: _controller,
+              controller: _scrollController,
               padding: const EdgeInsets.only(top: 10, bottom: 10),
-              // physics: const NeverScrollableScrollPhysics(),
               itemBuilder: (context, index) {
-                return LogItem(log: _logList[index]);
+                final log = _controller.filteredLogs[index];
+                return LogItem(
+                  log: log,
+                  isSelected: _controller.isSelected(log),
+                  hasSelection: _controller.hasSelection,
+                  onTap: () => _controller.toggleSelection(log),
+                  onShare: () => _controller.shareLog(log),
+                );
               },
             ),
           ),
-          const SizedBox(
-            height: 16,
-          ),
+          const SizedBox(height: 16),
         ],
       ),
     );
   }
 }
 
-class LogItem extends StatefulWidget {
+/// Search field widget
+class _SearchField extends StatelessWidget {
+  final ValueChanged<String> onSearch;
+
+  const _SearchField({required this.onSearch});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 16, left: 8, right: 8),
+      child: TextField(
+        onChanged: onSearch,
+        decoration: InputDecoration(
+          hintText: "Search...",
+          hintStyle: TextStyle(color: Colors.grey.shade600),
+          prefixIcon: Icon(
+            Icons.search,
+            color: Colors.grey.shade600,
+            size: 20,
+          ),
+          filled: true,
+          fillColor: Colors.grey.shade100,
+          contentPadding: const EdgeInsets.all(8),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(20),
+            borderSide: BorderSide(color: Colors.grey.shade100),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(20),
+            borderSide: BorderSide(color: Colors.grey.shade300),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Log item widget
+class LogItem extends StatelessWidget {
+  final Log log;
+  final bool isSelected;
+  final bool hasSelection;
+  final VoidCallback onTap;
+  final VoidCallback onShare;
+
   const LogItem({
     super.key,
     required this.log,
+    required this.isSelected,
+    required this.hasSelection,
+    required this.onTap,
+    required this.onShare,
   });
 
-  final Log log;
-
-  @override
-  State<LogItem> createState() => _LogItemState();
-}
-
-class _LogItemState extends State<LogItem> {
-  bool _isSelected = false;
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () {
-        if (selectedLogs.isNotEmpty) {
-          _isSelected
-              ? selectedLogs.remove(widget.log)
-              : selectedLogs.add(widget.log);
-          setState(() {
-            _isSelected = !_isSelected;
-          });
-        }
-      },
-      onLongPress: () {
-        if (selectedLogs.isEmpty) {
-          _isSelected
-              ? selectedLogs.remove(widget.log)
-              : selectedLogs.add(widget.log);
-          setState(() {
-            _isSelected = !_isSelected;
-          });
-        }
-      },
+      onTap: hasSelection ? onTap : null,
+      onLongPress: !hasSelection ? onTap : null,
       child: Container(
         padding:
             const EdgeInsets.only(left: 14, right: 14, top: 10, bottom: 10),
@@ -174,23 +176,18 @@ class _LogItemState extends State<LogItem> {
           children: [
             Padding(
               padding: const EdgeInsets.only(bottom: 16.0),
-              child: Container(
-                decoration:
-                    BoxDecoration(borderRadius: BorderRadius.circular(50)),
-                height: 25,
-                width: 25,
-                child: GestureDetector(
-                    onTap: () {
-                      Share.share(
-                          '${DateFormat('dd:MM:yyyy – kk:mm:ss').format(widget.log.time!)}\n${widget.log.message}',
-                          subject: '');
-                    },
-                    child: Icon(
-                      CupertinoIcons.arrowshape_turn_up_right_fill,
-                      size: 18,
-                      weight: 5,
-                      color: Colors.grey.shade300,
-                    )),
+              child: IconButton(
+                icon: Icon(
+                  CupertinoIcons.arrowshape_turn_up_right_fill,
+                  size: 18,
+                  color: Colors.grey.shade300,
+                ),
+                onPressed: onShare,
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(
+                  minWidth: 25,
+                  minHeight: 25,
+                ),
               ),
             ),
             Expanded(
@@ -201,25 +198,39 @@ class _LogItemState extends State<LogItem> {
                     child: Container(
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(20),
-                        color: _isSelected
-                            ? Color(0xffbb86fc).withOpacity(0.5)
-                            : (Colors.grey.shade200),
+                        color: isSelected
+                            ? const Color(0xffbb86fc).withOpacity(0.5)
+                            : Colors.grey.shade200,
                       ),
                       padding: const EdgeInsets.all(16),
-                      child: SelectableText(
-                        widget.log.message,
-                        style: const TextStyle(fontSize: 12),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          SelectableText(
+                            log.message,
+                            style: const TextStyle(fontSize: 12),
+                          ),
+                          if (log.error != null) ...[
+                            const SizedBox(height: 8),
+                            SelectableText(
+                              'Error: ${log.error}',
+                              style: TextStyle(
+                                fontSize: 10,
+                                color: Colors.red.shade700,
+                              ),
+                            ),
+                          ],
+                        ],
                       ),
                     ),
                   ),
-                  if (widget.log.time != null)
+                  if (log.time != null)
                     Align(
                       alignment: Alignment.bottomRight,
-                      child: Container(
+                      child: Padding(
                         padding: const EdgeInsets.only(top: 4, right: 4),
                         child: Text(
-                          DateFormat('dd:MM:yyyy – kk:mm:ss')
-                              .format(widget.log.time!),
+                          DateFormat('dd:MM:yyyy – kk:mm:ss').format(log.time!),
                           style: const TextStyle(fontSize: 6),
                         ),
                       ),
@@ -232,19 +243,4 @@ class _LogItemState extends State<LogItem> {
       ),
     );
   }
-}
-
-Future<String> _write(List<Log> logList) async {
-  final Directory directory = await getApplicationDocumentsDirectory();
-  final String fileName =
-      'log_${DateFormat('dd:MM:yyyy – kk:mm:ss').format(DateTime.now())}.txt';
-  final File file = File('${directory.path}/$fileName');
-  String text = '';
-  logList.forEach((element) {
-    text =
-        '$text \n\n (${DateFormat('dd:MM:yyyy – kk:mm:ss').format(element.time!)}) ${element.message}';
-  });
-
-  await file.writeAsString(text);
-  return '${directory.path}/$fileName';
 }
