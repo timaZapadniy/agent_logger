@@ -1,4 +1,5 @@
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
@@ -27,7 +28,8 @@ class _LoggerViewState extends State<LoggerView> {
   final ScrollController _scrollController = ScrollController();
   bool _showQRCode = false;
 
-  P2PServer get _p2pServer => widget.p2pServer ?? P2PServer();
+  P2PServer? get _p2pServer =>
+      kDebugMode ? (widget.p2pServer ?? P2PServer()) : null;
 
   @override
   void initState() {
@@ -42,18 +44,6 @@ class _LoggerViewState extends State<LoggerView> {
     }
   }
 
-  Future<void> _openQRScanner() async {
-    final result = await Navigator.of(context).push<bool>(
-      MaterialPageRoute(
-        builder: (context) => const QRScannerScreen(),
-      ),
-    );
-
-    if (result == true && mounted) {
-      setState(() {}); // Update UI to show connection status
-    }
-  }
-
   void _toggleQRCode() {
     setState(() {
       _showQRCode = !_showQRCode;
@@ -61,8 +51,8 @@ class _LoggerViewState extends State<LoggerView> {
   }
 
   void _copyServerUrl() {
-    if (_p2pServer.serverUrl != null) {
-      Clipboard.setData(ClipboardData(text: _p2pServer.serverUrl!));
+    if (_p2pServer?.serverUrl != null) {
+      Clipboard.setData(ClipboardData(text: _p2pServer!.serverUrl!));
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Server URL copied to clipboard'),
@@ -105,7 +95,7 @@ class _LoggerViewState extends State<LoggerView> {
             //   tooltip: 'Scan QR Code from web browser',
             // ),
             // P2P Server status
-            if (_p2pServer.isRunning)
+            if (kDebugMode && _p2pServer?.isRunning == true)
               Stack(
                 children: [
                   IconButton(
@@ -117,7 +107,7 @@ class _LoggerViewState extends State<LoggerView> {
                     onPressed: _toggleQRCode,
                     tooltip: 'Show QR Code',
                   ),
-                  if (_p2pServer.clientsCount > 0)
+                  if (_p2pServer!.clientsCount > 0)
                     Positioned(
                       right: 8,
                       top: 8,
@@ -132,7 +122,7 @@ class _LoggerViewState extends State<LoggerView> {
                           minHeight: 16,
                         ),
                         child: Text(
-                          '${_p2pServer.clientsCount}',
+                          '${_p2pServer!.clientsCount}',
                           style: const TextStyle(
                             color: Colors.white,
                             fontSize: 10,
@@ -143,7 +133,7 @@ class _LoggerViewState extends State<LoggerView> {
                     ),
                 ],
               )
-            else
+            else if (kDebugMode)
               IconButton(
                 icon: const Icon(
                   Icons.wifi_off,
@@ -179,8 +169,9 @@ class _LoggerViewState extends State<LoggerView> {
         children: [
           // QR Code banner (collapsible)
           if (_showQRCode &&
-              _p2pServer.isRunning &&
-              _p2pServer.serverUrl != null)
+              kDebugMode &&
+              _p2pServer?.isRunning == true &&
+              _p2pServer?.serverUrl != null)
             _buildQRCodeBanner(),
           _SearchField(
             onSearch: (query) => _controller.search(query),
@@ -211,7 +202,7 @@ class _LoggerViewState extends State<LoggerView> {
   }
 
   Widget _buildQRCodeBanner() {
-    final url = _p2pServer.serverUrl!;
+    final url = _p2pServer!.serverUrl!;
 
     return Container(
       width: double.infinity,
@@ -292,7 +283,7 @@ class _LoggerViewState extends State<LoggerView> {
           ),
           const SizedBox(height: 8),
           Text(
-            'Connected clients: ${_p2pServer.clientsCount}',
+            'Connected clients: ${_p2pServer!.clientsCount}',
             style: TextStyle(
               color: Colors.green[700],
               fontSize: 12,

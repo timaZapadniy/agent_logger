@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:network_info_plus/network_info_plus.dart';
 import '../models/log.dart';
 import '../repository/log_repository.dart';
@@ -28,6 +29,12 @@ class P2PServer {
 
   /// Start P2P server
   Future<bool> start() async {
+    // Only start P2P server in debug mode
+    if (!kDebugMode) {
+      print('P2P Server: Skipping start in production mode');
+      return false;
+    }
+
     if (isRunning) return true;
 
     try {

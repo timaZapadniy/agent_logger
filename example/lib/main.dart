@@ -86,7 +86,7 @@ class _MyHomePageState extends State<MyHomePage> {
             ),
             const SizedBox(height: 8),
             Text(
-              'P2P Server is running in background',
+              'P2P Server is running in background (Debug only)',
               style: TextStyle(
                 fontSize: 14,
                 color: Colors.green[700],

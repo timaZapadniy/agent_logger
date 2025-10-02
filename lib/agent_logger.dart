@@ -1,4 +1,5 @@
 import 'package:agent_logger/shake.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import 'services/p2p_server.dart';
@@ -75,6 +76,11 @@ class AgentLoggerState extends State<AgentLogger> {
   }
 
   Future<void> _startP2PServer() async {
+    // Only start P2P server in debug mode
+    if (!kDebugMode) {
+      return;
+    }
+
     final success = await _p2pServer.start();
     if (mounted && success) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -120,8 +126,8 @@ class AgentLoggerState extends State<AgentLogger> {
     return Stack(
       children: [
         widget.child,
-        // Индикатор P2P сервера в углу экрана
-        if (_p2pServer.isRunning)
+        // Индикатор P2P сервера в углу экрана (только в debug режиме)
+        if (kDebugMode && _p2pServer.isRunning)
           Positioned(
             top: 50,
             right: 16,
@@ -162,7 +168,7 @@ class AgentLoggerState extends State<AgentLogger> {
         if (_openLog)
           LoggerView(
             onTap: closeLogger,
-            p2pServer: _p2pServer,
+            p2pServer: kDebugMode ? _p2pServer : null,
           ),
       ],
     );
