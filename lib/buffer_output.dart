@@ -14,9 +14,7 @@ class BufferOutput extends LogOutput {
   }
   @override
   void output(OutputEvent event) {
-    // lines.add(Log(message: event.lines.last, time: DateTime.now()));
-    // for (var line in event.lines) {
-    //   // print(line);
-    // }
+    // Output is handled by the UI through LogRepository
+    // No console output needed here
   }
 }

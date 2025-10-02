@@ -39,40 +39,40 @@ class LoggerWriter extends Logger {
   void d(message, {DateTime? time, Object? error, StackTrace? stackTrace}) {
     _addLog(Level.debug, message,
         time: time, error: error, stackTrace: stackTrace);
-    super.d(message,
-        time: time ?? DateTime.now(), error: error, stackTrace: stackTrace);
+    // super.d(message,
+    //     time: time ?? DateTime.now(), error: error, stackTrace: stackTrace);
   }
 
   @override
   void e(message, {DateTime? time, Object? error, StackTrace? stackTrace}) {
     _addLog(Level.error, message,
         time: time, error: error, stackTrace: stackTrace);
-    super.e(message,
-        time: time ?? DateTime.now(), error: error, stackTrace: stackTrace);
+    // super.e(message,
+    //     time: time ?? DateTime.now(), error: error, stackTrace: stackTrace);
   }
 
   @override
   void f(message, {DateTime? time, Object? error, StackTrace? stackTrace}) {
     _addLog(Level.fatal, message,
         time: time, error: error, stackTrace: stackTrace);
-    super.f(message,
-        time: time ?? DateTime.now(), error: error, stackTrace: stackTrace);
+    // super.f(message,
+    //     time: time ?? DateTime.now(), error: error, stackTrace: stackTrace);
   }
 
   @override
   void i(message, {DateTime? time, Object? error, StackTrace? stackTrace}) {
     _addLog(Level.info, message,
         time: time, error: error, stackTrace: stackTrace);
-    super.i(message,
-        time: time ?? DateTime.now(), error: error, stackTrace: stackTrace);
+    // super.i(message,
+    //     time: time ?? DateTime.now(), error: error, stackTrace: stackTrace);
   }
 
   @override
   void t(message, {DateTime? time, Object? error, StackTrace? stackTrace}) {
     _addLog(Level.trace, message,
         time: time, error: error, stackTrace: stackTrace);
-    super.t(message,
-        time: time ?? DateTime.now(), error: error, stackTrace: stackTrace);
+    // super.t(message,
+    //     time: time ?? DateTime.now(), error: error, stackTrace: stackTrace);
   }
 
   @override
@@ -80,16 +80,16 @@ class LoggerWriter extends Logger {
   void v(message, {DateTime? time, Object? error, StackTrace? stackTrace}) {
     _addLog(Level.trace, message,
         time: time, error: error, stackTrace: stackTrace);
-    super.v(message,
-        time: time ?? DateTime.now(), error: error, stackTrace: stackTrace);
+    // super.v(message,
+    //     time: time ?? DateTime.now(), error: error, stackTrace: stackTrace);
   }
 
   @override
   void w(message, {DateTime? time, Object? error, StackTrace? stackTrace}) {
     _addLog(Level.warning, message,
         time: time, error: error, stackTrace: stackTrace);
-    super.w(message,
-        time: time ?? DateTime.now(), error: error, stackTrace: stackTrace);
+    // super.w(message,
+    //     time: time ?? DateTime.now(), error: error, stackTrace: stackTrace);
   }
 
   @override
@@ -97,16 +97,16 @@ class LoggerWriter extends Logger {
   void wtf(message, {DateTime? time, Object? error, StackTrace? stackTrace}) {
     _addLog(Level.fatal, message,
         time: time, error: error, stackTrace: stackTrace);
-    super.wtf(message,
-        time: time ?? DateTime.now(), error: error, stackTrace: stackTrace);
+    // super.wtf(message,
+    //     time: time ?? DateTime.now(), error: error, stackTrace: stackTrace);
   }
 
   @override
   void log(Level level, message,
       {DateTime? time, Object? error, StackTrace? stackTrace}) {
     _addLog(level, message, time: time, error: error, stackTrace: stackTrace);
-    super.log(level, message,
-        time: time ?? DateTime.now(), error: error, stackTrace: stackTrace);
+    // super.log(level, message,
+    //     time: time ?? DateTime.now(), error: error, stackTrace: stackTrace);
   }
 
   @override

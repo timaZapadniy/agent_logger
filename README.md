@@ -7,6 +7,9 @@ Inspired by [Logger](https://pub.dev/packages/logger), Agent Logger provides a c
 ## ✨ Features
 
 - 📱 **Shake to Open** - Simply shake your device to view logs
+- 🌐 **Remote Viewing** - View logs in web browser via QR code connection ✨ NEW!
+  - 🎉 **P2P Mode** - No server needed! Direct connection
+  - 🔧 **Relay Mode** - Works anywhere with WebSocket server
 - 🎨 **Beautiful UI** - Modern, Material Design interface
 - 🔍 **Real-time Search** - Instantly search through logs
 - 📤 **Export & Share** - Share logs via any platform
@@ -92,6 +95,17 @@ try {
 ### Shake to Open
 Simply shake your device to open the logger view. No need for debug buttons or complex gestures!
 
+### 🌐 Remote Viewing (NEW!)
+View logs from your mobile device in real-time on any web browser:
+- **P2P Mode** - Direct connection, NO server needed! 🎉
+- **Scan QR Code** - Automatic setup
+- **Real-time Streaming** - See logs as they happen
+- **Team Collaboration** - Share session with team members
+- **Works offline** - Just WiFi connection needed
+
+👉 **P2P Mode (no server):** [P2P_MODE.md](P2P_MODE.md)  
+👉 **With server:** [REMOTE_LOGGING.md](REMOTE_LOGGING.md)
+
 ### Search Functionality
 Type in the search bar to instantly filter logs by content. Perfect for finding specific events.
 
@@ -104,6 +118,7 @@ Type in the search bar to instantly filter logs by content. Perfect for finding 
 - Share logs as text file
 - Share individual log entries
 - Copy log text
+- Stream to web client
 
 ## 🏗️ Architecture
 
@@ -176,6 +191,8 @@ See the [LICENSE](LICENSE) file for details.
 - [sensors_plus](https://pub.dev/packages/sensors_plus) - Shake detection
 - [share_plus](https://pub.dev/packages/share_plus) - Share functionality
 - [path_provider](https://pub.dev/packages/path_provider) - File system access
+- [mobile_scanner](https://pub.dev/packages/mobile_scanner) - QR code scanning
+- [web_socket_channel](https://pub.dev/packages/web_socket_channel) - WebSocket communication
 
 ---
 

@@ -12,9 +12,13 @@ class LogRepository {
 
   final List<Log> _logs = [];
   final _logsController = StreamController<List<Log>>.broadcast();
+  final _singleLogController = StreamController<Log>.broadcast();
 
   /// Stream of logs for reactive updates
   Stream<List<Log>> get logsStream => _logsController.stream;
+
+  /// Stream of individual logs
+  Stream<Log> get singleLogStream => _singleLogController.stream;
 
   /// Get all logs
   List<Log> get logs => List.unmodifiable(_logs);
@@ -26,6 +30,7 @@ class LogRepository {
   void addLog(Log log) {
     _logs.add(log);
     _logsController.add(List.unmodifiable(_logs));
+    _singleLogController.add(log);
   }
 
   /// Clear all logs
@@ -57,5 +62,6 @@ class LogRepository {
   /// Dispose resources
   void dispose() {
     _logsController.close();
+    _singleLogController.close();
   }
 }

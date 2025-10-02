@@ -29,7 +29,15 @@ migrate_working_dir/
 .packages
 build/
 
-# Documentation files (internal)
+# Documentation files (internal, keep locally but don't commit)
 ARCHITECTURE.md
 RECOMMENDATIONS.md
 REFACTORING_SUMMARY.md
+REMOTE_LOGGING.md
+REMOTE_LOGGING_GUIDE.md
+QUICK_START.md
+PROJECT_SUMMARY.md
+P2P_MODE.md
+
+# Web client (development tool)
+web_client/

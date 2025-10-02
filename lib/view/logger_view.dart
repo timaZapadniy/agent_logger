@@ -1,16 +1,21 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:qr_flutter/qr_flutter.dart';
 
 import '../controller/logger_controller.dart';
 import '../models/log.dart';
 import '../repository/log_repository.dart';
+import '../services/p2p_server.dart';
+import 'qr_scanner_screen.dart';
 
 class LoggerView extends StatefulWidget {
   final void Function()? onTap;
+  final P2PServer? p2pServer;
 
-  const LoggerView({super.key, required this.onTap});
+  const LoggerView({super.key, required this.onTap, this.p2pServer});
 
   @override
   State<LoggerView> createState() => _LoggerViewState();
@@ -20,6 +25,9 @@ class _LoggerViewState extends State<LoggerView> {
   late final LoggerController _controller;
   final Color _kColor = const Color(0xffbb86fc).withOpacity(0.5);
   final ScrollController _scrollController = ScrollController();
+  bool _showQRCode = false;
+
+  P2PServer get _p2pServer => widget.p2pServer ?? P2PServer();
 
   @override
   void initState() {
@@ -34,8 +42,40 @@ class _LoggerViewState extends State<LoggerView> {
     }
   }
 
+  Future<void> _openQRScanner() async {
+    final result = await Navigator.of(context).push<bool>(
+      MaterialPageRoute(
+        builder: (context) => const QRScannerScreen(),
+      ),
+    );
+
+    if (result == true && mounted) {
+      setState(() {}); // Update UI to show connection status
+    }
+  }
+
+  void _toggleQRCode() {
+    setState(() {
+      _showQRCode = !_showQRCode;
+    });
+  }
+
+  void _copyServerUrl() {
+    if (_p2pServer.serverUrl != null) {
+      Clipboard.setData(ClipboardData(text: _p2pServer.serverUrl!));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Server URL copied to clipboard'),
+          duration: Duration(seconds: 1),
+        ),
+      );
+    }
+  }
+
   @override
   void dispose() {
+    // Не останавливаем P2P сервер при закрытии экрана логов
+    // Сервер будет работать в фоне
     _controller.removeListener(_onControllerUpdate);
     _controller.dispose();
     _scrollController.dispose();
@@ -55,6 +95,64 @@ class _LoggerViewState extends State<LoggerView> {
                 style: TextStyle(fontSize: 30, fontWeight: FontWeight.bold),
               ),
             ),
+            // // QR Scanner button
+            // IconButton(
+            //   icon: const Icon(
+            //     Icons.qr_code_scanner,
+            //     size: 25,
+            //   ),
+            //   onPressed: _openQRScanner,
+            //   tooltip: 'Scan QR Code from web browser',
+            // ),
+            // P2P Server status
+            if (_p2pServer.isRunning)
+              Stack(
+                children: [
+                  IconButton(
+                    icon: const Icon(
+                      Icons.wifi_tethering,
+                      color: Colors.green,
+                      size: 25,
+                    ),
+                    onPressed: _toggleQRCode,
+                    tooltip: 'Show QR Code',
+                  ),
+                  if (_p2pServer.clientsCount > 0)
+                    Positioned(
+                      right: 8,
+                      top: 8,
+                      child: Container(
+                        padding: const EdgeInsets.all(2),
+                        decoration: BoxDecoration(
+                          color: Colors.red,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        constraints: const BoxConstraints(
+                          minWidth: 16,
+                          minHeight: 16,
+                        ),
+                        child: Text(
+                          '${_p2pServer.clientsCount}',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 10,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                    ),
+                ],
+              )
+            else
+              IconButton(
+                icon: const Icon(
+                  Icons.wifi_off,
+                  color: Colors.grey,
+                  size: 25,
+                ),
+                onPressed: null,
+                tooltip: 'P2P Server starting...',
+              ),
             IconButton(
               icon: const Icon(
                 CupertinoIcons.arrowshape_turn_up_right_fill,
@@ -79,6 +177,11 @@ class _LoggerViewState extends State<LoggerView> {
       ),
       body: Column(
         children: [
+          // QR Code banner (collapsible)
+          if (_showQRCode &&
+              _p2pServer.isRunning &&
+              _p2pServer.serverUrl != null)
+            _buildQRCodeBanner(),
           _SearchField(
             onSearch: (query) => _controller.search(query),
           ),
@@ -102,6 +205,100 @@ class _LoggerViewState extends State<LoggerView> {
             ),
           ),
           const SizedBox(height: 16),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildQRCodeBanner() {
+    final url = _p2pServer.serverUrl!;
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.green.withOpacity(0.1),
+        border: Border(
+          bottom: BorderSide(color: Colors.green.withOpacity(0.3)),
+        ),
+      ),
+      child: Column(
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.qr_code, color: Colors.green),
+              const SizedBox(width: 8),
+              const Expanded(
+                child: Text(
+                  'Web Client Connection',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+              ),
+              IconButton(
+                icon: const Icon(Icons.close, size: 20),
+                onPressed: _toggleQRCode,
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: QrImageView(
+              data: url,
+              version: QrVersions.auto,
+              size: 150,
+              backgroundColor: Colors.white,
+            ),
+          ),
+          const SizedBox(height: 12),
+          Text(
+            'Enter this IP in web client:',
+            style: TextStyle(
+              color: Colors.grey[700],
+              fontSize: 12,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          const SizedBox(height: 4),
+          GestureDetector(
+            onTap: _copyServerUrl,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              decoration: BoxDecoration(
+                color: Colors.black.withOpacity(0.05),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: Colors.grey.withOpacity(0.3)),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    url,
+                    style: const TextStyle(
+                      fontFamily: 'monospace',
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  const Icon(Icons.copy, size: 16),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Connected clients: ${_p2pServer.clientsCount}',
+            style: TextStyle(
+              color: Colors.green[700],
+              fontSize: 12,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
         ],
       ),
     );

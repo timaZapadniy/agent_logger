@@ -1,0 +1,275 @@
+import 'package:flutter/material.dart';
+import 'package:mobile_scanner/mobile_scanner.dart';
+import '../services/p2p_server.dart';
+
+class QRScannerScreen extends StatefulWidget {
+  const QRScannerScreen({super.key});
+
+  @override
+  State<QRScannerScreen> createState() => _QRScannerScreenState();
+}
+
+class _QRScannerScreenState extends State<QRScannerScreen> {
+  final MobileScannerController _controller = MobileScannerController();
+  bool _isProcessing = false;
+  String? _errorMessage;
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  Future<void> _handleQRCode(String data) async {
+    if (_isProcessing) return;
+
+    setState(() {
+      _isProcessing = true;
+      _errorMessage = null;
+    });
+
+    try {
+      // The QR code should contain the P2P server URL
+      // For now, we'll assume it's a direct URL
+      final serverUrl = data.trim();
+
+      if (!serverUrl.startsWith('http://') &&
+          !serverUrl.startsWith('https://')) {
+        throw Exception('Invalid server URL format');
+      }
+
+      // Connect to P2P server
+      final success = await P2PServer().connectToServer(serverUrl);
+
+      if (!mounted) return;
+
+      if (success) {
+        // Return success to previous screen
+        Navigator.of(context).pop(true);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Connected to web client!'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      } else {
+        setState(() {
+          _errorMessage = 'Failed to connect to web client';
+          _isProcessing = false;
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _errorMessage = 'Invalid QR code: $e';
+        _isProcessing = false;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Scan QR Code'),
+        backgroundColor: const Color(0xffbb86fc).withOpacity(0.5),
+      ),
+      body: Stack(
+        children: [
+          // Camera view
+          MobileScanner(
+            controller: _controller,
+            onDetect: (capture) {
+              final List<Barcode> barcodes = capture.barcodes;
+              for (final barcode in barcodes) {
+                if (barcode.rawValue != null) {
+                  _handleQRCode(barcode.rawValue!);
+                  break;
+                }
+              }
+            },
+          ),
+
+          // Overlay with instructions
+          Column(
+            children: [
+              const Spacer(),
+              Container(
+                width: double.infinity,
+                color: Colors.black.withOpacity(0.7),
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (_isProcessing)
+                      const Column(
+                        children: [
+                          CircularProgressIndicator(
+                            valueColor:
+                                AlwaysStoppedAnimation<Color>(Colors.white),
+                          ),
+                          SizedBox(height: 16),
+                          Text(
+                            'Connecting...',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 16,
+                            ),
+                          ),
+                        ],
+                      )
+                    else if (_errorMessage != null)
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: Colors.red.withOpacity(0.2),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: Colors.red),
+                        ),
+                        child: Row(
+                          children: [
+                            const Icon(Icons.error, color: Colors.red),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Text(
+                                _errorMessage!,
+                                style: const TextStyle(color: Colors.white),
+                              ),
+                            ),
+                            IconButton(
+                              icon:
+                                  const Icon(Icons.close, color: Colors.white),
+                              onPressed: () {
+                                setState(() {
+                                  _errorMessage = null;
+                                });
+                              },
+                            ),
+                          ],
+                        ),
+                      )
+                    else
+                      const Column(
+                        children: [
+                          Icon(
+                            Icons.qr_code_scanner,
+                            color: Colors.white,
+                            size: 48,
+                          ),
+                          SizedBox(height: 16),
+                          Text(
+                            'Position the QR code within the frame',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 16,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                          SizedBox(height: 8),
+                          Text(
+                            'The QR code will be scanned automatically',
+                            style: TextStyle(
+                              color: Colors.white70,
+                              fontSize: 12,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ],
+                      ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+
+          // Scanner frame overlay
+          Center(
+            child: Container(
+              width: 250,
+              height: 250,
+              decoration: BoxDecoration(
+                border: Border.all(
+                  color: _isProcessing
+                      ? Colors.orange
+                      : _errorMessage != null
+                          ? Colors.red
+                          : Colors.white,
+                  width: 2,
+                ),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Stack(
+                children: [
+                  // Corner decorations
+                  Positioned(
+                    top: -2,
+                    left: -2,
+                    child: Container(
+                      width: 30,
+                      height: 30,
+                      decoration: BoxDecoration(
+                        border: Border(
+                          top: BorderSide(
+                              color: const Color(0xffbb86fc), width: 4),
+                          left: BorderSide(
+                              color: const Color(0xffbb86fc), width: 4),
+                        ),
+                      ),
+                    ),
+                  ),
+                  Positioned(
+                    top: -2,
+                    right: -2,
+                    child: Container(
+                      width: 30,
+                      height: 30,
+                      decoration: BoxDecoration(
+                        border: Border(
+                          top: BorderSide(
+                              color: const Color(0xffbb86fc), width: 4),
+                          right: BorderSide(
+                              color: const Color(0xffbb86fc), width: 4),
+                        ),
+                      ),
+                    ),
+                  ),
+                  Positioned(
+                    bottom: -2,
+                    left: -2,
+                    child: Container(
+                      width: 30,
+                      height: 30,
+                      decoration: BoxDecoration(
+                        border: Border(
+                          bottom: BorderSide(
+                              color: const Color(0xffbb86fc), width: 4),
+                          left: BorderSide(
+                              color: const Color(0xffbb86fc), width: 4),
+                        ),
+                      ),
+                    ),
+                  ),
+                  Positioned(
+                    bottom: -2,
+                    right: -2,
+                    child: Container(
+                      width: 30,
+                      height: 30,
+                      decoration: BoxDecoration(
+                        border: Border(
+                          bottom: BorderSide(
+                              color: const Color(0xffbb86fc), width: 4),
+                          right: BorderSide(
+                              color: const Color(0xffbb86fc), width: 4),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}

@@ -84,6 +84,15 @@ class _MyHomePageState extends State<MyHomePage> {
               'Shake your device to open logger!',
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
+            const SizedBox(height: 8),
+            Text(
+              'P2P Server is running in background',
+              style: TextStyle(
+                fontSize: 14,
+                color: Colors.green[700],
+                fontWeight: FontWeight.w500,
+              ),
+            ),
             const SizedBox(height: 32),
             const Text(
               'You have pushed the button this many times:',
