@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:agent_logger/agent_logger.dart';
 import 'package:agent_logger/logger.dart';
+import 'config.dart';
 
 // Global logger instance - singleton pattern ensures same instance everywhere
 final logger = LoggerWriter();
@@ -25,8 +26,10 @@ class MyApp extends StatelessWidget {
       // Wrap your home widget with AgentLogger
       // Shake your device to open the logger view
       home: AgentLogger(
-        enable: true, // Enable shake detection
-        shakeThresholdGravity: 2.7, // Shake sensitivity
+        enable: Config.enableShakeDetection,
+        shakeThresholdGravity: Config.shakeThresholdGravity,
+        // Подключение к P2P Relay серверу
+        p2pServerUrl: Config.p2pServerUrl,
         child: const MyHomePage(title: 'Agent Logger Demo'),
       ),
     );
@@ -86,7 +89,7 @@ class _MyHomePageState extends State<MyHomePage> {
             ),
             const SizedBox(height: 8),
             Text(
-              'P2P Server is running in background (Debug only)',
+              'Connected to P2P Relay Server: ${Config.p2pServerUrl}',
               style: TextStyle(
                 fontSize: 14,
                 color: Colors.green[700],
