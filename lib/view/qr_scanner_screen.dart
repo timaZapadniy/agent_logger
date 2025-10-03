@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:mobile_scanner/mobile_scanner.dart';
 import '../services/p2p_server.dart';
 
 class QRScannerScreen extends StatefulWidget {
@@ -10,13 +9,11 @@ class QRScannerScreen extends StatefulWidget {
 }
 
 class _QRScannerScreenState extends State<QRScannerScreen> {
-  final MobileScannerController _controller = MobileScannerController();
   bool _isProcessing = false;
   String? _errorMessage;
 
   @override
   void dispose() {
-    _controller.dispose();
     super.dispose();
   }
 
@@ -76,18 +73,18 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
       body: Stack(
         children: [
           // Camera view
-          MobileScanner(
-            controller: _controller,
-            onDetect: (capture) {
-              final List<Barcode> barcodes = capture.barcodes;
-              for (final barcode in barcodes) {
-                if (barcode.rawValue != null) {
-                  _handleQRCode(barcode.rawValue!);
-                  break;
-                }
-              }
-            },
-          ),
+          // MobileScanner(
+          //   controller: _controller,
+          //   onDetect: (capture) {
+          //     final List<Barcode> barcodes = capture.barcodes;
+          //     for (final barcode in barcodes) {
+          //       if (barcode.rawValue != null) {
+          //         _handleQRCode(barcode.rawValue!);
+          //         break;
+          //       }
+          //     }
+          //   },
+          // ),
 
           // Overlay with instructions
           Column(

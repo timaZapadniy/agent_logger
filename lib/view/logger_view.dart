@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:share_plus/share_plus.dart';
-import 'package:qr_flutter/qr_flutter.dart';
 
 import '../controller/logger_controller.dart';
 import '../models/log.dart';
@@ -232,19 +231,6 @@ class _LoggerViewState extends State<LoggerView> {
             ],
           ),
           const SizedBox(height: 12),
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: QrImageView(
-              data: url,
-              version: QrVersions.auto,
-              size: 150,
-              backgroundColor: Colors.white,
-            ),
-          ),
           const SizedBox(height: 12),
           Text(
             'Enter this IP in web client:',
