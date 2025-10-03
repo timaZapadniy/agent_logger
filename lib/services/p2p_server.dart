@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:network_info_plus/network_info_plus.dart';
+import 'package:web_socket_channel/web_socket_channel.dart';
 import '../models/log.dart';
 import '../repository/log_repository.dart';
 
@@ -18,6 +19,13 @@ class P2PServer {
   String? _serverUrl;
   StreamSubscription<Log>? _logsSubscription;
 
+  // P2P Relay Server connection
+  WebSocketChannel? _relayChannel;
+  String? _deviceId;
+  String? _sessionId;
+  String? _relayServerUrl;
+  bool _isConnectedToRelay = false;
+
   /// Server status
   bool get isRunning => _server != null;
 
@@ -27,8 +35,20 @@ class P2PServer {
   /// Number of connected clients
   int get clientsCount => _clients.length;
 
+  /// P2P Relay Server connection status
+  bool get isConnectedToRelay => _isConnectedToRelay;
+
+  /// Device ID in relay server
+  String? get deviceId => _deviceId;
+
+  /// Session ID for web clients
+  String? get sessionId => _sessionId;
+
+  /// Relay server URL
+  String? get relayServerUrl => _relayServerUrl;
+
   /// Start P2P server
-  Future<bool> start() async {
+  Future<bool> start({String? relayServerUrl}) async {
     // Only start P2P server in debug mode
     if (!kDebugMode) {
       print('P2P Server: Skipping start in production mode');
@@ -38,6 +58,11 @@ class P2PServer {
     if (isRunning) return true;
 
     try {
+      // If relay server URL is provided, connect to it instead of starting local server
+      if (relayServerUrl != null) {
+        return await _connectToRelayServer(relayServerUrl);
+      }
+
       // Get local IP address
       final wifiIP = await _networkInfo.getWifiIP();
       if (wifiIP == null) {
@@ -220,6 +245,102 @@ class P2PServer {
     }
   }
 
+  /// Connect to P2P relay server
+  Future<bool> _connectToRelayServer(String relayServerUrl) async {
+    try {
+      _relayServerUrl = relayServerUrl;
+
+      // Parse URL and create WebSocket URL
+      final uri = Uri.parse(relayServerUrl);
+      final wsUrl = 'ws://${uri.host}:${uri.port}/ws?type=mobile';
+
+      print('Connecting to P2P relay server: $wsUrl');
+
+      // Connect to relay server
+      _relayChannel = WebSocketChannel.connect(Uri.parse(wsUrl));
+
+      // Listen for messages from relay server
+      _relayChannel!.stream.listen(
+        (data) => _handleRelayMessage(data),
+        onError: (error) {
+          print('Relay server connection error: $error');
+          _disconnectFromRelay();
+        },
+        onDone: () {
+          print('Relay server connection closed');
+          _disconnectFromRelay();
+        },
+      );
+
+      // Cancel previous subscription if exists
+      await _logsSubscription?.cancel();
+
+      // Listen to logs and send to relay server
+      _logsSubscription = LogRepository().singleLogStream.listen((log) {
+        _sendLogToRelay(log);
+      });
+
+      _isConnectedToRelay = true;
+      print('Connected to P2P relay server');
+      return true;
+    } catch (e) {
+      print('Failed to connect to relay server: $e');
+      _disconnectFromRelay();
+      return false;
+    }
+  }
+
+  /// Handle message from relay server
+  void _handleRelayMessage(dynamic data) {
+    try {
+      final message = json.decode(data as String) as Map<String, dynamic>;
+      final type = message['type'] as String?;
+
+      if (type == 'connected') {
+        _deviceId = message['deviceId'] as String?;
+        _sessionId = message['sessionId'] as String?;
+        print(
+            'Connected to relay server - Device ID: $_deviceId, Session ID: $_sessionId');
+      }
+    } catch (e) {
+      print('Error handling relay message: $e');
+    }
+  }
+
+  /// Send log to relay server
+  void _sendLogToRelay(Log log) {
+    if (!_isConnectedToRelay || _relayChannel == null) return;
+
+    try {
+      final message = {
+        'type': 'log',
+        'data': {
+          'message': log.message,
+          'level': log.level?.toString().split('.').last,
+          'timestamp':
+              log.time?.toIso8601String() ?? DateTime.now().toIso8601String(),
+          'error': log.error?.toString(),
+          'stackTrace': log.stackTrace?.toString(),
+          'deviceId': _deviceId ?? 'unknown',
+        },
+      };
+
+      _relayChannel!.sink.add(json.encode(message));
+    } catch (e) {
+      print('Error sending log to relay server: $e');
+    }
+  }
+
+  /// Disconnect from relay server
+  void _disconnectFromRelay() {
+    _relayChannel?.sink.close();
+    _relayChannel = null;
+    _isConnectedToRelay = false;
+    _deviceId = null;
+    _sessionId = null;
+    _relayServerUrl = null;
+  }
+
   /// Connect to existing P2P server (as client)
   Future<bool> connectToServer(String serverUrl) async {
     try {
@@ -242,6 +363,11 @@ class P2PServer {
   Future<void> stop() async {
     _logsSubscription?.cancel();
     _logsSubscription = null;
+
+    // Disconnect from relay server if connected
+    if (_isConnectedToRelay) {
+      _disconnectFromRelay();
+    }
 
     // Close all client connections
     for (final client in _clients) {

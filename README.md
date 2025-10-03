@@ -104,7 +104,8 @@ View logs from your mobile device in real-time on any web browser:
 - **Works offline** - Just WiFi connection needed
 
 👉 **P2P Mode (no server):** [P2P_MODE.md](P2P_MODE.md)  
-👉 **With server:** [REMOTE_LOGGING.md](REMOTE_LOGGING.md)
+👉 **With server:** [REMOTE_LOGGING.md](REMOTE_LOGGING.md)  
+👉 **P2P Relay Server:** [agent_logger_p2p](https://github.com/timaZapadniy/agent_logger_p2p) - Отдельный репозиторий для сервера
 
 ### Search Functionality
 Type in the search bar to instantly filter logs by content. Perfect for finding specific events.

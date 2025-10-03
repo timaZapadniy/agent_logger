@@ -41,3 +41,12 @@ P2P_MODE.md
 
 # Web client (development tool)
 web_client/
+
+# P2P Relay Server (separate repository)
+p2p_relay_server/
+scripts/
+
+# Docker files for deployment
+docker-compose.yml
+nginx.conf
+Dockerfile

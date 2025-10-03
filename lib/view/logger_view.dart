@@ -9,7 +9,7 @@ import '../controller/logger_controller.dart';
 import '../models/log.dart';
 import '../repository/log_repository.dart';
 import '../services/p2p_server.dart';
-import 'qr_scanner_screen.dart';
+import '../widgets/connection_qr_widget.dart';
 
 class LoggerView extends StatefulWidget {
   final void Function()? onTap;
@@ -44,9 +44,26 @@ class _LoggerViewState extends State<LoggerView> {
   }
 
   void _toggleQRCode() {
-    setState(() {
-      _showQRCode = !_showQRCode;
-    });
+    if (_showQRCode) {
+      setState(() {
+        _showQRCode = false;
+      });
+    } else {
+      showModalBottomSheet(
+        context: context,
+        isScrollControlled: true,
+        backgroundColor: Colors.transparent,
+        builder: (context) => ConnectionQRWidget(
+          p2pServer: _p2pServer!,
+          onClose: () {
+            Navigator.of(context).pop();
+            setState(() {
+              _showQRCode = false;
+            });
+          },
+        ),
+      );
+    }
   }
 
   void _copyServerUrl() {
@@ -94,17 +111,25 @@ class _LoggerViewState extends State<LoggerView> {
             //   tooltip: 'Scan QR Code from web browser',
             // ),
             // P2P Server status
-            if (kDebugMode && _p2pServer?.isRunning == true)
+            if (kDebugMode &&
+                (_p2pServer?.isRunning == true ||
+                    _p2pServer?.isConnectedToRelay == true))
               Stack(
                 children: [
                   IconButton(
-                    icon: const Icon(
-                      Icons.wifi_tethering,
-                      color: Colors.green,
+                    icon: Icon(
+                      _p2pServer!.isConnectedToRelay
+                          ? Icons.cloud
+                          : Icons.wifi_tethering,
+                      color: _p2pServer!.isConnectedToRelay
+                          ? Colors.blue
+                          : Colors.green,
                       size: 25,
                     ),
                     onPressed: _toggleQRCode,
-                    tooltip: 'Show QR Code',
+                    tooltip: _p2pServer!.isConnectedToRelay
+                        ? 'Show Relay Connection QR'
+                        : 'Show P2P Connection QR',
                   ),
                   if (_p2pServer!.clientsCount > 0)
                     Positioned(

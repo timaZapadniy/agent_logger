@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../services/p2p_server.dart';
 
 class QRScannerScreen extends StatefulWidget {
   const QRScannerScreen({super.key});
@@ -15,52 +14,6 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
   @override
   void dispose() {
     super.dispose();
-  }
-
-  Future<void> _handleQRCode(String data) async {
-    if (_isProcessing) return;
-
-    setState(() {
-      _isProcessing = true;
-      _errorMessage = null;
-    });
-
-    try {
-      // The QR code should contain the P2P server URL
-      // For now, we'll assume it's a direct URL
-      final serverUrl = data.trim();
-
-      if (!serverUrl.startsWith('http://') &&
-          !serverUrl.startsWith('https://')) {
-        throw Exception('Invalid server URL format');
-      }
-
-      // Connect to P2P server
-      final success = await P2PServer().connectToServer(serverUrl);
-
-      if (!mounted) return;
-
-      if (success) {
-        // Return success to previous screen
-        Navigator.of(context).pop(true);
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Connected to web client!'),
-            backgroundColor: Colors.green,
-          ),
-        );
-      } else {
-        setState(() {
-          _errorMessage = 'Failed to connect to web client';
-          _isProcessing = false;
-        });
-      }
-    } catch (e) {
-      setState(() {
-        _errorMessage = 'Invalid QR code: $e';
-        _isProcessing = false;
-      });
-    }
   }
 
   @override
