@@ -4,6 +4,10 @@ import 'package:flutter/material.dart';
 
 import 'services/p2p_server.dart';
 import 'view/logger_view.dart';
+import 'utils/config_helper.dart';
+
+// P2P Relay Server configuration
+String get _p2pServerUrl => ConfigHelper.getP2PServerUrl();
 
 /// Main widget that wraps your app and provides logger functionality
 class AgentLogger extends StatefulWidget {
@@ -78,16 +82,28 @@ class AgentLoggerState extends State<AgentLogger> {
   Future<void> _startP2PServer() async {
     // Only start P2P server in debug mode
     if (!kDebugMode) {
+      debugPrint('P2P Server: Skipping start in production mode');
       return;
     }
 
-    final success = await _p2pServer.start();
+    debugPrint('P2P Server: Starting with URL: $_p2pServerUrl');
+    final success = await _p2pServer.start(relayServerUrl: _p2pServerUrl);
+    debugPrint('P2P Server: Start result: $success');
+
     if (mounted && success) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('P2P Server started on ${_p2pServer.serverUrl}'),
+          content: Text('P2P Server connected to ${_p2pServerUrl}'),
           backgroundColor: Colors.green,
           duration: const Duration(seconds: 2),
+        ),
+      );
+    } else if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Failed to connect to P2P Server: ${_p2pServerUrl}'),
+          backgroundColor: Colors.red,
+          duration: const Duration(seconds: 3),
         ),
       );
     }

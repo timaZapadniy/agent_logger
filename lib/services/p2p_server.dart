@@ -109,7 +109,7 @@ class P2PServer {
         <div id="logs"></div>
     </div>
     <script>
-        const ws = new WebSocket('ws://' + window.location.host + '/ws');
+        const ws = new WebSocket((window.location.protocol === 'https:' ? 'wss://' : 'ws://') + window.location.host + '/ws');
         const logsDiv = document.getElementById('logs');
         
         ws.onmessage = function(event) {
@@ -252,7 +252,18 @@ class P2PServer {
 
       // Parse URL and create WebSocket URL
       final uri = Uri.parse(relayServerUrl);
-      final wsUrl = 'ws://${uri.host}:${uri.port}/ws?type=mobile';
+      final protocol = uri.scheme == 'https' ? 'wss' : 'ws';
+
+      // Handle default ports for SSL/HTTP
+      String port = '';
+      if (uri.port != -1) {
+        port = ':${uri.port}';
+      } else {
+        // Use default ports if not specified
+        port = protocol == 'wss' ? ':443' : ':80';
+      }
+
+      final wsUrl = '$protocol://${uri.host}$port/ws?type=mobile';
 
       print('Connecting to P2P relay server: $wsUrl');
 

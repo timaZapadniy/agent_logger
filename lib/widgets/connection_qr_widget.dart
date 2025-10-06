@@ -221,14 +221,16 @@ class ConnectionQRWidget extends StatelessWidget {
       final sessionId = p2pServer.sessionId;
       if (serverUrl != null && sessionId != null) {
         final uri = Uri.parse(serverUrl);
-        return 'ws://${uri.host}:${uri.port}/ws?type=web&session=$sessionId';
+        final protocol = uri.scheme == 'https' ? 'wss' : 'ws';
+        return '$protocol://${uri.host}:${uri.port}/ws?type=web&session=$sessionId';
       }
     } else {
       // For direct P2P, return the mobile server URL
       final serverUrl = p2pServer.serverUrl;
       if (serverUrl != null) {
         final uri = Uri.parse(serverUrl);
-        return 'ws://${uri.host}:${uri.port}/ws';
+        final protocol = uri.scheme == 'https' ? 'wss' : 'ws';
+        return '$protocol://${uri.host}:${uri.port}/ws';
       }
     }
     return 'ws://localhost:8080/ws';

@@ -28,8 +28,6 @@ class MyApp extends StatelessWidget {
       home: AgentLogger(
         enable: Config.enableShakeDetection,
         shakeThresholdGravity: Config.shakeThresholdGravity,
-        // Подключение к P2P Relay серверу
-        p2pServerUrl: Config.p2pServerUrl,
         child: const MyHomePage(title: 'Agent Logger Demo'),
       ),
     );
