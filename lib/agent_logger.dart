@@ -1,5 +1,4 @@
 import 'package:agent_logger/shake.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import 'services/p2p_server.dart';
@@ -17,6 +16,9 @@ class AgentLogger extends StatefulWidget {
   /// Enable or disable shake detection
   final bool enable;
 
+  /// Enable or disable P2P server functionality
+  final bool enableP2P;
+
   /// Shake detection sensitivity (lower = more sensitive)
   final double shakeThresholdGravity;
 
@@ -24,6 +26,7 @@ class AgentLogger extends StatefulWidget {
     super.key,
     required this.child,
     this.enable = true,
+    this.enableP2P = true,
     this.shakeThresholdGravity = 2.7,
   });
 
@@ -80,9 +83,9 @@ class AgentLoggerState extends State<AgentLogger> {
   }
 
   Future<void> _startP2PServer() async {
-    // Only start P2P server in debug mode
-    if (!kDebugMode) {
-      debugPrint('P2P Server: Skipping start in production mode');
+    // Only start P2P server if enabled
+    if (!widget.enableP2P) {
+      debugPrint('P2P Server: Disabled by configuration');
       return;
     }
 
@@ -142,8 +145,8 @@ class AgentLoggerState extends State<AgentLogger> {
     return Stack(
       children: [
         widget.child,
-        // Индикатор P2P сервера в углу экрана (только в debug режиме)
-        if (kDebugMode && _p2pServer.isRunning)
+        // Индикатор P2P сервера в углу экрана
+        if (widget.enableP2P && _p2pServer.isRunning)
           Positioned(
             top: 50,
             right: 16,
@@ -184,7 +187,7 @@ class AgentLoggerState extends State<AgentLogger> {
         if (_openLog)
           LoggerView(
             onTap: closeLogger,
-            p2pServer: kDebugMode ? _p2pServer : null,
+            p2pServer: widget.enableP2P ? _p2pServer : null,
           ),
       ],
     );
